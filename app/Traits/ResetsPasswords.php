@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Password;
@@ -145,7 +146,7 @@ trait ResetsPasswords
      * @param  string  $password
      * @return void
      */
-    protected function resetPassword($user, $password)
+    protected function resetPassword(User $user, $password)
     {
         $user->password = app('hash')->make($password);
 

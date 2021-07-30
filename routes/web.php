@@ -22,4 +22,6 @@ $router->post('/email/verify', ['as' => 'email.verify', 'uses' => 'Api\AuthContr
 $router->group(['prefix' => 'api/v1'], function () use ($router) {
     //auth
     $router->get('invoice', 'Api\InvoiceController@index');
+    $router->post('invoice', 'Api\InvoiceController@login');
+    $router->post('getToken', 'Api\InvoiceController@getToken');
 });

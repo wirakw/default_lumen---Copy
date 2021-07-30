@@ -7,6 +7,8 @@
     "require": {
         "php": "^7.2.5||^8.0",
         "barryvdh/laravel-dompdf": "^0.9.0",
+        "flipbox/lumen-generator": "^8.2",
+        "guzzlehttp/guzzle": "^7.0",
         "illuminate/mail": "^7.28",
         "illuminate/notifications": "^7.28",
         "laravel/lumen-framework": "^7.0",
