@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>KUITANSI</title>
 
     <style type="text/css">
@@ -57,118 +57,128 @@
 </head>
 
 <body>
-    <h2 align="center">KUITANSI</h2>
-    <table width="100%">
-        <tr>
-            <td width="15px">No</div>
-            <td width="15px">:</td>
-            <td>KEVA/2021/SHOPEE/VI/001</td>
-        </tr>
-        <tr>
-            <td width="15px">Tanggal</div>
-            <td width="15px">:</td>
-            <td>30/06/2021</td>
-        </tr>
-    </table>
+    @foreach ($datas as $data)
+        <div class="page-break">
+            <h2 align="center">KUITANSI</h2>
+            <table width="100%">
+                <tr>
+                    <td width="15px">No</td>
+                    <td width="15px">:</td>
+                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/VI/00{{$loop->iteration}}</td>
+                </tr>
+                <tr>
+                    <td width="15px">Tanggal</td>
+                    <td width="15px">:</td>
+                    @php
+                        date_default_timezone_set("Asia/Jakarta")
+                    @endphp
+                    <td>{{date("d/m/Y", ($data['order_date'] / 1000))}}</td>
+                </tr>
+            </table>
 
-    <br>
+        <br>
 
-    <table width="100%">
-        <tr>
-            <td>PT. Keva Cosmetics Internasional</td>
-        </tr>
-        <tr>
-            <td>Jl. Panglima Polim No. 28 Pulo Kebayoran Baru Jakarta Selatan DKI Jakarta</td>
-        </tr>
-        <tr>
-            <td>74.673.938.2-019.000</td>
-        </tr>
-    </table>
+        <table width="100%">
+            <tr>
+                <td>PT. Keva Cosmetics Internasional</td>
+            </tr>
+            <tr>
+                <td>Jl. Panglima Polim No. 28 Pulo Kebayoran Baru Jakarta Selatan DKI Jakarta</td>
+            </tr>
+            <tr>
+                <td>74.673.938.2-019.000</td>
+            </tr>
+        </table>
 
-    <br>
+        <br>
 
-    <table width="100%">
-        <tr>
-            <td width="10px">Sudah Terima dari</div>
-            <td width="10px">:</td>
-            <td width="250px">Poedja Prasetyanto, 6285251750784</td>
-        </tr>
-        <tr>
-            <td width="10px">No. Pesanan</div>
-            <td width="10px">:</td>
-            <td width="250px">210630P40J6H9H</td>
-        </tr>
-        <tr>
-            <td width="10px">Alamat Pengiriman</div>
-            <td width="10px">:</td>
-            <td width="250px">Jl Brigjen Katamso RT 05 RW 02 Kuala Pembuang KAB. SERUYAN, SERUYAN HILIR, KALIMANTAN TENGAH, ID, 74211</td>
-        </tr>
-    </table>
+        <table width="100%">
+            <tr>
+                <td width="10px">Sudah Terima dari</td>
+                <td width="10px">:</td>
+                <td width="250px">{{$data['customer_name']}}, 6285251750784</td>
+            </tr>
+            <tr>
+                <td width="10px">No. Pesanan</td>
+                <td width="10px">:</td>
+                <td width="250px">{{$data['channel_invoice']}}</td>
+            </tr>
+            <tr>
+                <td width="10px">Alamat Pengiriman</td>
+                <td width="10px">:</td>
+                <td width="250px">{{$data['customer_address']}}</td>
+            </tr>
+        </table>
 
-	<br>
+        <br>
 
-    <table width="100%">
-        <tr>
-            <td width="100px"><strong>Infomasi Jasa Kirim</strong></div>
-        </tr>
-        <tr>
-            <td width="100px">Package 1 : Regular (Cashless) J&T Express</div>
-        </tr>
-        <tr>
-            <td width="100px">1 products</div>
-        </tr>
-    </table>
+        <table width="100%">
+            <tr>
+                <td width="100px"><strong>Infomasi Jasa Kirim</strong></td>
+            </tr>
+            <tr>
+                <td width="100px">Package 1 : {{$data['shipping']['shipping_carrier']}} J&T Express</td>
+            </tr>
+            <tr>
+                <td width="100px">{{count($data['items'])}} products</td>
+            </tr>
+        </table>
 
-	<br>
+        <br>
 
-
-	<div style="font-size: x-small"><strong>Informasi Pembayaran</strong></div>
-    <table width="100%">
-		<thead style="background-color: whitesmoke;">
-			<tr>
-				<th><strong>No.</strong></th>
-				<th align="left" width="250px"><strong>Produk</strong></th>
-				<th><strong>Harga Satuan</strong></th>
-				<th><strong>Jumlah</strong></th>
-				<th><strong>Disc (%)</strong></th>
-				<th><strong>Subtotal</strong></th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td align="center">1</td>
-				<td align="left">ESQA Lip Gloss Tokyo</td>
-				<td align="center">Rp 100.000</td>
-				<td align="center">1</td>
-				<td align="right">50%</td>
-				<td align="right">Rp 50.000</td>
-			</tr>
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="4" align="right" style="font-size: 10px;"><strong>Total Pesanan</strong></td>
-				<td colspan="1" align="right">Rp</td>
-				<td colspan="1" align="right">50.000</td>
-			</tr>
-			<tr>
-				<td colspan="4" align="right" style="font-size: 10px;"><strong>PPN</strong></td>
-				<td colspan="1" align="right">Rp</td>
-				<td colspan="1" align="right">4.545</td>
-			</tr>
-			<tr>
-				<td colspan="4" align="right" style="font-size: 10px;"><strong>Service Fee</strong></td>
-				<td colspan="1" align="right">-Rp</td>
-				<td colspan="1" align="right">4.250</td>
-			</tr>
-			<tr>
-				<td colspan="4" align="right" style="font-size: 15px;"><strong>Total Pembayaran</strong></td>
-				<td colspan="1" align="right">Rp</td>
-				<td colspan="1" align="right">45.750</td>
-			</tr>
-		</tfoot>
-	</table>
-
-
+        <div style="font-size: x-small"><strong>Informasi Pembayaran</strong></div>
+        <table width="100%">
+            <thead style="background-color: whitesmoke;">
+                <tr>
+                    <th><strong>No.</strong></th>
+                    <th align="left" width="250px"><strong>Produk</strong></th>
+                    <th><strong>Harga Satuan</strong></th>
+                    <th><strong>Jumlah</strong></th>
+                    <th><strong>Disc (%)</strong></th>
+                    <th><strong>Subtotal</strong></th>
+                </tr>
+            </thead>
+            @php $totalPesanan = 0 @endphp 
+            @foreach ($data['items'] as $item)
+                <tbody>
+                    <tr>
+                        <td align="center">{{$loop->iteration}}</td>
+                        <td align="left">{{$item['name']}}</td>
+                        <td align="center">{{rupiah($item['price'])}}</td>
+                        <td align="center">{{$item['quantity']}}</td>
+                        <td align="right">{{$item['discount'] / $item['price'] * 100}}%</td>
+                        <td align="right">{{rupiah($item['price'] - $item['discount'])}}</td>
+                    </tr>
+                </tbody>
+                @php
+                    $totalPesanan += $item['price'] - $item['discount']
+                @endphp
+            @endforeach
+            <tfoot>
+                <tr>
+                    <td colspan="4" align="right" style="font-size: 10px;"><strong>Total Pesanan</strong></td>
+                    <td colspan="1" align="right">Rp</td>
+                    <td colspan="1" align="right">{{rupiahWithoutPrefix($totalPesanan)}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right" style="font-size: 10px;"><strong>PPN</strong></td>
+                    <td colspan="1" align="right">Rp</td>
+                    <td colspan="1" align="right">{{rupiahWithoutPrefix($totalPesanan*0.1)}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right" style="font-size: 10px;"><strong>Service Fee</strong></td>
+                    <td colspan="1" align="right">-Rp</td>
+                    <td colspan="1" align="right">4.250</td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right" style="font-size: 15px;"><strong>Total Pembayaran</strong></td>
+                    <td colspan="1" align="right">Rp</td>
+                    <td colspan="1" align="right">{{rupiahWithoutPrefix(($totalPesanan + ($totalPesanan*0.1)) - 4.250)}}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    @endforeach
 </body>
 
 </html>

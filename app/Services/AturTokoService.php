@@ -28,4 +28,14 @@ class AturTokoService
     {
         return $this->performRequest('POST', '/accesstoken', $data);
     }
+
+    public function getListOrder($data, $header)
+    {
+        return $this->performRequest('POST', '/list_order', $data, $header);
+    }
+
+    public function getOrderDetail($data, $header)
+    {
+        return $this->performRequest('POST', '/detail_order', $data, $header);
+    }
 }

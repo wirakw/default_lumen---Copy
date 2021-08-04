@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use PDF;
 use App\Services\AturTokoService;
+// use Cache;
 
 class InvoiceController extends Controller
 {
@@ -46,15 +47,57 @@ class InvoiceController extends Controller
         return response()->json($this->atService->login($input), 200);
     }
 
-    public function getToken(Request $request)
+    public function getToken()
     {
-        $this->validate($request, [
-            'username' => 'required',
-            'password' => 'required',
-        ]);
-        $input = $request->all();
+        $input = [
+            'username' => 'putri',
+            'password' => '112233',
+        ];
         $inputReq['authorization_code'] = $this->atService->login($input)['data']['data']['authorization_code'];
-        return response()->json($this->atService->getToken($inputReq), 200);
+        $token = $this->atService->getToken($inputReq)['data']['data']['access_token'];
+        $expiresAt = $this->atService->getToken($inputReq)['data']['data']['expires_at'];
+        // Cache::put('X-Access-Token', $token, $expiresAt);
+
+        $req = [
+            "marketplace"=> [],
+            "status" =>[
+                "UNP",
+                "RTS",
+                "PRC",
+                "CAN",
+                "SHP",
+                "DLV",
+                "INV",
+                "UNK",
+                "EXP",
+                "REM",
+                "COM"
+            ],
+            "from" => 1625072400000,
+            "to" => 1627664400000,
+            "orderby" => "order_id",
+            "order" => "asc",
+            "page" => 0,
+            "size" =>  10,
+            "query" =>  ""
+        ];
+        $header = [
+            "X-Access-Token" => $token,
+            'Content-Type' => 'application/json',
+        ];
+        $orderList = $this->atService->getListOrder($req, $header)['data']['data'];
+        $invoices = [];
+        foreach ($orderList as $orderData) {
+            $reqDetail = [
+                "order_id" => $orderData["channel_order_id"]
+            ];
+            $invoices[] = $this->atService->getOrderDetail($reqDetail, $header)['data']['data'];
+        }
+
+        $pdf = app()->make('dompdf.wrapper');
+        $pdf->loadView('pdf.invoice', ['datas' => $invoices])->setPaper('a4', 'portrait');
+        return $pdf->stream();
+        // return response()->json($generates, 200);
     }
     
 }
