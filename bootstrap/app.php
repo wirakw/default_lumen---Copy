@@ -30,6 +30,7 @@ $app->withEloquent();
 
 $app->configure('services');
 $app->configure('mail');
+$app->configure('excel');
 
 $app->alias('mail.manager', Illuminate\Mail\MailManager::class);
 $app->alias('mail.manager', Illuminate\Contracts\Mail\Factory::class);
@@ -115,7 +116,7 @@ $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 $app->register(\Barryvdh\DomPDF\ServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
-
+$app->register(Maatwebsite\Excel\ExcelServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

@@ -24,4 +24,7 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     $router->get('invoice', 'Api\InvoiceController@index');
     $router->post('invoice', 'Api\InvoiceController@login');
     $router->get('getToken', 'Api\InvoiceController@getToken');
+    // $router->get('dump', 'Api\InvoiceController@dump');
+    $router->get('abc', 'Api\InvoiceController@importTest');
+    
 });

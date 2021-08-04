@@ -64,14 +64,18 @@
                 <tr>
                     <td width="15px">No</td>
                     <td width="15px">:</td>
-                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/VI/{{invoice_num($loop->iteration)}}</td>
+                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/VI/{{$data['order_id']}}</td>
                 </tr>
                 <tr>
                     <td width="15px">Tanggal</td>
                     <td width="15px">:</td>
-                    <td>{{$data['order_date']}}</td>
+                    @php
+                        date_default_timezone_set("Asia/Jakarta")
+                    @endphp
+                    <td>{{date("d/m/Y", ($data['order_date'] / 1000))}}</td>
                 </tr>
             </table>
+
         <br>
 
         <table width="100%">
@@ -86,15 +90,25 @@
             </tr>
         </table>
 
-        {{-- <br> --}}
+        <br>
 
-        {{-- <table width="100%">
+        <table width="100%">
+            <tr>
+                <td width="10px">Sudah Terima dari</td>
+                <td width="10px">:</td>
+                <td width="250px">{{$data['customer_name']}}, 6285251750784</td>
+            </tr>
             <tr>
                 <td width="10px">No. Pesanan</td>
                 <td width="10px">:</td>
-                <td width="250px">{{$data['channel_order_id']}}</td>
+                <td width="250px">{{$data['channel_invoice']}}</td>
             </tr>
-        </table> --}}
+            <tr>
+                <td width="10px">Alamat Pengiriman</td>
+                <td width="10px">:</td>
+                <td width="250px">{{$data['customer_address']}}</td>
+            </tr>
+        </table>
 
         <br>
 
@@ -103,7 +117,7 @@
                 <td width="100px"><strong>Infomasi Jasa Kirim</strong></td>
             </tr>
             <tr>
-                <td width="100px">Package 1 : </td>
+                <td width="100px">Package 1 : {{$data['shipping']['shipping_carrier']}} J&T Express</td>
             </tr>
             <tr>
                 <td width="100px">{{count($data['items'])}} products</td>
@@ -125,7 +139,6 @@
                 </tr>
             </thead>
             @php $totalPesanan = 0 @endphp 
-            @php $ppnTotal = 0 @endphp 
             @foreach ($data['items'] as $item)
                 <tbody>
                     <tr>
@@ -133,13 +146,12 @@
                         <td align="left">{{$item['name']}}</td>
                         <td align="center">{{rupiah($item['price'])}}</td>
                         <td align="center">{{$item['quantity']}}</td>
-                        <td align="right">{{rupiah($item['price'] - $item['amount_discount'])}}</td>
-                        <td align="right">{{rupiah($item['amount_discount'])}}</td>
+                        <td align="right">{{number_format($item['discount'] / $item['price'] * 100,2,',','.')}}%</td>
+                        <td align="right">{{rupiah($item['price'] - $item['discount'])}}</td>
                     </tr>
                 </tbody>
                 @php
-                    $totalPesanan += $item['amount_discount'];
-                    $ppnTotal += $item['ppn'];
+                    $totalPesanan += $item['price'] - $item['discount']
                 @endphp
             @endforeach
             <tfoot>
@@ -151,13 +163,18 @@
                 <tr>
                     <td colspan="4" align="right" style="font-size: 10px;"><strong>PPN</strong></td>
                     <td colspan="1" align="right">Rp</td>
-                    <td colspan="1" align="right">{{rupiahWithoutPrefix($ppnTotal)}}</td>
+                    <td colspan="1" align="right">{{rupiahWithoutPrefix($totalPesanan*0.1)}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right" style="font-size: 10px;"><strong>Service Fee</strong></td>
+                    <td colspan="1" align="right">-Rp</td>
+                    <td colspan="1" align="right">4.250</td>
                 </tr>
                 <tr>
                     <td colspan="4" align="right" style="font-size: 15px;"><strong>Total Pembayaran</strong></td>
                     <td colspan="1" align="right">Rp</td>
                     @php
-                        $totalbayar = ($totalPesanan + $ppnTotal)
+                        $totalbayar = ($totalPesanan + ($totalPesanan*0.1)) - 4.250
                     @endphp
                     <td colspan="1" align="right">{{rupiahWithoutPrefix(round($totalbayar))}}</td>
                 </tr>
