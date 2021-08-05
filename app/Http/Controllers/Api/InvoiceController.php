@@ -112,6 +112,19 @@ class InvoiceController extends Controller
     //     // return $phoneNumbersData;
     // }
 
+    public function pembulatan($uang)
+    {
+        $ratusan = substr($uang, -3);
+        if ($ratusan < 500) {
+            $akhir = $uang - $ratusan;
+        } else {
+            $akhir = $uang + (1000 - $ratusan);
+        }
+
+        //  echo number_format($akhir, 2, ',', '.');;
+        return $akhir;
+    }
+
     public function importTest()
     {
         // $rows = [];
@@ -125,18 +138,23 @@ class InvoiceController extends Controller
             if ($i <= 6) {
                 continue;
             }
-            if ($i == 22) {
-                break;
-            }
+            // if ($i == 32) {
+            //     break;
+            // }
             $isExit = false;
             foreach ($datas as &$data) {
                 if ($data["channel_order_id"] == "${row[1]}") {
                     $isExit = true;
+                    $discExl = (int) $row[11] - (int) $row[13];
+                    $discIcld = 0;
+                    if ($discExl != 0) {
+                        $discIcld = $discExl + ($discExl * 0.1);
+                    }
                     $item = [
                         "name" => $row[7],
                         "quantity" => $row[4],
                         "price" => $row[9],
-                        "amount_discount" => $row[13],
+                        "discount" => $this->pembulatan((int)$discIcld),
                         "ppn" => $row[17],
                     ];
                     $data["items"][] = $item;
@@ -144,11 +162,16 @@ class InvoiceController extends Controller
                 }
             }
             if (!$isExit) {
+                $discExl = (int) $row[11] - (int) $row[13];
+                $discIcld = 0;
+                if ($discExl != 0) {
+                    $discIcld = $discExl + ($discExl * 0.1);
+                }
                 $item = [
                     "name" => $row[7],
                     "quantity" => $row[4],
                     "price" => $row[9],
-                    "amount_discount" => $row[13],
+                    "discount" => $this->pembulatan((int)$discIcld),
                     "ppn" => $row[17],
                 ];
                 $data = [
@@ -163,9 +186,13 @@ class InvoiceController extends Controller
                 $datas[] = $data;
             }
         }
-
+        $result = [];
+        for ($i = 0;$i < 24;$i++) {
+            $result[] = $datas[$i];
+        }
+        // return response()->json($result, 200);
         $pdf = app()->make('dompdf.wrapper');
-        $pdf->loadView('pdf.invoice', ['datas' => $datas])->setPaper('a4', 'portrait');
+        $pdf->loadView('pdf.invoice', ['datas' => $result])->setPaper('a4', 'portrait');
         return $pdf->stream();
     }
 

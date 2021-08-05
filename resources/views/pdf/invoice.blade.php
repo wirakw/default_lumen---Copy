@@ -64,7 +64,13 @@
                 <tr>
                     <td width="15px">No</td>
                     <td width="15px">:</td>
-                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/VI/{{invoice_num($loop->iteration)}}</td>
+                    @php
+                        $month = explode('/', $data['order_date']);
+                        if (!isset($month[1])) {
+                            $month[1] = 1;
+                        }
+                    @endphp
+                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/{{getRomawi($month[1])}}/{{invoice_num($loop->iteration)}}</td>
                 </tr>
                 <tr>
                     <td width="15px">Tanggal</td>
@@ -86,9 +92,9 @@
             </tr>
         </table>
 
-        {{-- <br> --}}
+        {{-- <br>
 
-        {{-- <table width="100%">
+        <table width="100%">
             <tr>
                 <td width="10px">No. Pesanan</td>
                 <td width="10px">:</td>
@@ -120,7 +126,7 @@
                     <th align="left" width="250px"><strong>Produk</strong></th>
                     <th><strong>Harga Satuan</strong></th>
                     <th><strong>Jumlah</strong></th>
-                    <th><strong>Disc (%)</strong></th>
+                    <th><strong>Disc</strong></th>
                     <th><strong>Subtotal</strong></th>
                 </tr>
             </thead>
@@ -133,12 +139,12 @@
                         <td align="left">{{$item['name']}}</td>
                         <td align="center">{{rupiah($item['price'])}}</td>
                         <td align="center">{{$item['quantity']}}</td>
-                        <td align="right">{{rupiah($item['price'] - $item['amount_discount'])}}</td>
-                        <td align="right">{{rupiah($item['amount_discount'])}}</td>
+                        <td align="right">{{rupiah($item['discount'])}}</td>
+                        <td align="right">{{rupiah($item['quantity'] * ($item['price'] - $item['discount']))}}</td>
                     </tr>
                 </tbody>
                 @php
-                    $totalPesanan += $item['amount_discount'];
+                    $totalPesanan += $item['quantity'] * ($item['price'] - $item['discount']);
                     $ppnTotal += $item['ppn'];
                 @endphp
             @endforeach
@@ -157,9 +163,9 @@
                     <td colspan="4" align="right" style="font-size: 15px;"><strong>Total Pembayaran</strong></td>
                     <td colspan="1" align="right">Rp</td>
                     @php
-                        $totalbayar = ($totalPesanan + $ppnTotal)
+                        $totalbayar = ($totalPesanan)
                     @endphp
-                    <td colspan="1" align="right">{{rupiahWithoutPrefix(round($totalbayar))}}</td>
+                    <td colspan="1" align="right">{{rupiahWithoutPrefix($totalbayar)}}</td>
                 </tr>
             </tfoot>
         </table>
