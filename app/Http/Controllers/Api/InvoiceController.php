@@ -59,7 +59,7 @@ class InvoiceController extends Controller
         // Cache::put('X-Access-Token', $token, $expiresAt);
 
         $req = [
-            "marketplace" => [],
+            "marketplace" => ["TPD"],
             "status" => [
                 "UNP",
                 "RTS",
@@ -73,12 +73,12 @@ class InvoiceController extends Controller
                 "REM",
                 "COM",
             ],
-            "from" => 1625072400000,
-            "to" => 1627664400000,
+            "from" => 1627750800000,
+            "to" => 1630256400000,
             "orderby" => "order_id",
             "order" => "asc",
             "page" => 0,
-            "size" => 10,
+            "size" => 299,
             "query" => "",
         ];
         $header = [
@@ -94,9 +94,11 @@ class InvoiceController extends Controller
             $invoices[] = $this->atService->getOrderDetail($reqDetail, $header)['data']['data'];
         }
 
-        $pdf = app()->make('dompdf.wrapper');
-        $pdf->loadView('pdf.invoice', ['datas' => $invoices])->setPaper('a4', 'portrait');
-        return $pdf->stream();
+        // return response()->json($invoices, 200);
+        return view('pdf.kuitansi', ['datas' => $invoices]);
+        // $pdf = app()->make('dompdf.wrapper');
+        // $pdf->loadView('pdf.invoice', ['datas' => $invoices])->setPaper('a4', 'portrait');
+        // return $pdf->stream();
         // return response()->json($generates, 200);
     }
 
@@ -154,7 +156,7 @@ class InvoiceController extends Controller
                         "name" => $row[7],
                         "quantity" => $row[4],
                         "price" => $row[9],
-                        "discount" => $this->pembulatan((int)$discIcld),
+                        "discount" => $this->pembulatan((int) $discIcld),
                         "ppn" => $row[17],
                     ];
                     $data["items"][] = $item;
@@ -171,7 +173,7 @@ class InvoiceController extends Controller
                     "name" => $row[7],
                     "quantity" => $row[4],
                     "price" => $row[9],
-                    "discount" => $this->pembulatan((int)$discIcld),
+                    "discount" => $this->pembulatan((int) $discIcld),
                     "ppn" => $row[17],
                 ];
                 $data = [
@@ -187,13 +189,14 @@ class InvoiceController extends Controller
             }
         }
         $result = [];
-        for ($i = 0;$i < 24;$i++) {
+        for ($i = 0; $i < count($datas) - 5; $i++) {
             $result[] = $datas[$i];
         }
         // return response()->json($result, 200);
-        $pdf = app()->make('dompdf.wrapper');
-        $pdf->loadView('pdf.invoice', ['datas' => $result])->setPaper('a4', 'portrait');
-        return $pdf->stream();
+        // $pdf = app()->make('dompdf.wrapper');
+        // $pdf->loadView('pdf.invoice', ['datas' => $result])->setPaper('a4', 'portrait');
+        // return $pdf->stream();
+        return view('pdf.invoice', ['datas' => $result]);
     }
 
     public function dump()

@@ -90,17 +90,15 @@
                     <td width="15px">No</td>
                     <td width="15px">:</td>
                     @php
-                        $month = explode('/', $data['order_date']);
-                        if (!isset($month[1])) {
-                            $month[1] = 1;
-                        }
+                        $date = date("d/m/Y", $data['order_date'] / 1000);
+                        $month = date("m",strtotime($date));
                     @endphp
-                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/{{getRomawi($month[1])}}/{{invoice_num($loop->iteration)}}</td>
+                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/{{getRomawi($month)}}/{{invoice_num($loop->iteration)}}</td>
                 </tr>
                 <tr>
                     <td width="15px">Tanggal</td>
                     <td width="15px">:</td>
-                    <td>{{$data['order_date']}}</td>
+                    <td>{{$date}}</td>
                 </tr>
             </table>
         <br>
@@ -137,7 +135,7 @@
                 <td width="100px">Package 1 : </td>
             </tr>
             <tr>
-                <td width="100px">{{count($data['items'])}} products</td>
+                <td width="100px">{{$data['total_record_items']}} products</td>
             </tr>
         </table>
 
@@ -170,7 +168,8 @@
                 </tbody>
                 @php
                     $totalPesanan += $item['quantity'] * ($item['price'] - $item['discount']);
-                    $ppnTotal += $item['ppn'];
+                    $ppn = $item['price'] * 0.1;
+                    $ppnTotal += $ppn;
                 @endphp
             @endforeach
             <tfoot>
