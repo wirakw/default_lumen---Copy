@@ -158,6 +158,11 @@
             @php $totalPesanan = 0 @endphp 
             @php $ppnTotal = 0 @endphp 
             @foreach ($data['items'] as $item)
+            @php
+                $subtotal = ($item['quantity'] * $item['price']) - $item['discount'];
+                $totalPesanan += $subtotal;
+                $ppnTotal += $item['ppn'];
+            @endphp
                 <tbody>
                     <tr>
                         <td align="center">{{$loop->iteration}}</td>
@@ -165,13 +170,9 @@
                         <td align="center">{{rupiah($item['price'])}}</td>
                         <td align="center">{{$item['quantity']}}</td>
                         <td align="right">{{rupiah($item['discount'])}}</td>
-                        <td align="right">{{rupiah($item['quantity'] * ($item['price'] - $item['discount']))}}</td>
+                        <td align="right">{{rupiah($subtotal)}}</td>
                     </tr>
                 </tbody>
-                @php
-                    $totalPesanan += $item['quantity'] * ($item['price'] - $item['discount']);
-                    $ppnTotal += $item['ppn'];
-                @endphp
             @endforeach
             <tfoot>
                 <tr>
