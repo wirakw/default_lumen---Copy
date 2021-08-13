@@ -130,8 +130,8 @@ class InvoiceController extends Controller
     public function importTest()
     {
         // $rows = [];
-        $rows = Excel::toArray(new Kuitansi, public_path("app/penjualanjan2020.xls"));
-
+        $rows = Excel::toArray(new Kuitansi, public_path("app/januaritokped.xls"));
+        
         // $rows = Excel::toArray(new Kuitansi, $request->file('sampledata'));
         $datas = [];
         $i = 0;
@@ -147,16 +147,16 @@ class InvoiceController extends Controller
             foreach ($datas as &$data) {
                 if ($data["channel_order_id"] == "${row[1]}") {
                     $isExit = true;
-                    $discExl = (int) $row[11] - (int) $row[13];
-                    $discIcld = 0;
-                    if ($discExl != 0) {
-                        $discIcld = $discExl + ($discExl * 0.1);
-                    }
+                    // $discExl = (int) $row[11] - (int) $row[13];
+                    // $discIcld = 0;
+                    // if ($discExl != 0) {
+                    //     $discIcld = $discExl + ($discExl * 0.1);
+                    // }
                     $item = [
                         "name" => $row[7],
                         "quantity" => $row[4],
                         "price" => $row[9],
-                        "discount" => $this->pembulatan((int) $discIcld),
+                        "discount" => $row[15],
                         "ppn" => $row[17],
                     ];
                     $data["items"][] = $item;
@@ -164,16 +164,16 @@ class InvoiceController extends Controller
                 }
             }
             if (!$isExit) {
-                $discExl = (int) $row[11] - (int) $row[13];
-                $discIcld = 0;
-                if ($discExl != 0) {
-                    $discIcld = $discExl + ($discExl * 0.1);
-                }
+                // $discExl = (int) $row[11] - (int) $row[13];
+                // $discIcld = 0;
+                // if ($discExl != 0) {
+                //     $discIcld = $discExl + ($discExl * 0.1);
+                // }
                 $item = [
                     "name" => $row[7],
                     "quantity" => $row[4],
                     "price" => $row[9],
-                    "discount" => $this->pembulatan((int) $discIcld),
+                    "discount" => $row[15],
                     "ppn" => $row[17],
                 ];
                 $data = [

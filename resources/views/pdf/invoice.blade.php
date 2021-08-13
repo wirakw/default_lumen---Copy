@@ -56,6 +56,9 @@
             #printBtn {
                 visibility: hidden !important; // To hide 
             }
+            #totalPenjualan {
+                visibility: hidden !important; // To hide 
+            }
 
             @page :footer {
                 visibility: hidden !important; // To hide 
@@ -81,7 +84,9 @@
 
 <body>
     <button id="printBtn" onclick="genPDF()">Generate PDF</button>
-
+    @php
+        $total = 0;
+    @endphp
     @foreach ($datas as $data)
         <div class="page-break">
             <h2 align="center">KUITANSI</h2>
@@ -158,11 +163,11 @@
             @php $totalPesanan = 0 @endphp 
             @php $ppnTotal = 0 @endphp 
             @foreach ($data['items'] as $item)
-            @php
-                $subtotal = ($item['quantity'] * $item['price']) - $item['discount'];
-                $totalPesanan += $subtotal;
-                $ppnTotal += $item['ppn'];
-            @endphp
+                @php
+                    $subtotal = ($item['quantity'] * $item['price']) - $item['discount'];
+                    $totalPesanan += $subtotal;
+                    $ppnTotal += $item['ppn'];
+                @endphp
                 <tbody>
                     <tr>
                         <td align="center">{{$loop->iteration}}</td>
@@ -174,6 +179,9 @@
                     </tr>
                 </tbody>
             @endforeach
+            @php
+                $total += $totalPesanan;
+            @endphp
             <tfoot>
                 <tr>
                     <td colspan="4" align="right" style="font-size: 10px;"><strong>Total Pesanan</strong></td>
@@ -198,6 +206,7 @@
         </div>
     @endforeach
 
+    <h2 id="totalPenjualan">TOTAL PENJUALAN : {{rupiah($total)}}</h2>
     <script>
         function genPDF() {
                 window.print()
