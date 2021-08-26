@@ -6,6 +6,14 @@ function rupiah($angka)
     return $hasil_rupiah;
 }
 
+
+function invoiceFormat($str)
+{
+    $new = explode("-",$str);
+    return $new[2] . '/' .$new[1] . '/' .$new[0];
+}
+
+
 function strtodate($str)
 {
     $new = explode(" ",$str);

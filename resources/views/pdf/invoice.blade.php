@@ -90,7 +90,7 @@
                     <td width="15px">No</td>
                     <td width="15px">:</td>
                     @php
-                        $month = explode('/', $data['order_date']);
+                        $month = explode('-', $data['order_date']);
                         if (!isset($month[1])) {
                             $month[1] = 1;
                         }
@@ -100,7 +100,7 @@
                 <tr>
                     <td width="15px">Tanggal</td>
                     <td width="15px">:</td>
-                    <td>{{$data['order_date']}}</td>
+                    <td>{{ invoiceFormat($data['order_date'])}}</td>
                 </tr>
             </table>
         <br>
