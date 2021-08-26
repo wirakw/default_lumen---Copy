@@ -60,13 +60,8 @@
                 visibility: hidden !important; // To hide 
             }
 
-            @page :footer {
-                visibility: hidden !important; // To hide 
-            }
-        
-            @page :header {
-                visibility: hidden !important; // To hide 
-            }
+            @page { margin: 0; }
+            body { margin: 1.6cm; }
 
             body * {
                 -webkit-print-color-adjust: exact !important; // not necessary use         

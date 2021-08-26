@@ -21,9 +21,10 @@ $router->post('/email/verify', ['as' => 'email.verify', 'uses' => 'Api\AuthContr
 
 $router->group(['prefix' => 'api/v1'], function () use ($router) {
     //auth
-    $router->get('invoice', 'Api\InvoiceController@index');
-    $router->post('invoice', 'Api\InvoiceController@login');
-    $router->get('getToken', 'Api\InvoiceController@getToken');
-    // $router->get('dump', 'Api\InvoiceController@dump');
-    $router->get('abc', 'Api\InvoiceController@importTest');
+    $router->get('invoice', 'Api\KuitansiController@index');
+    $router->post('invoice', 'Api\KuitansiController@login');
+    $router->get('getToken', 'Api\KuitansiController@getToken');
+    // $router->get('dump', 'Api\KuitansiController@dump');
+    $router->get('abc', 'Api\KuitansiController@importTest');
+    $router->post('import', 'Api\KuitansiController@import');
 });

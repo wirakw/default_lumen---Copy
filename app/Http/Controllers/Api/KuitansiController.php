@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Imports\Kuitansi;
+use App\Models\Transaction;
+use App\Models\TransactionDetail;
 use App\Services\AturTokoService;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-// use Cache;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
-class InvoiceController extends Controller
+class KuitansiController extends Controller
 {
 
     public $atService;
@@ -23,6 +26,100 @@ class InvoiceController extends Controller
     public function __construct(AturTokoService $atService)
     {
         $this->atService = $atService;
+    }
+
+    public function import(Request $request)
+    {
+        $this->validate($request, [
+            'file' => 'required|mimes:xls,xlsx',
+        ]);
+
+        // menangkap file excel
+        $file = $request->file('file');
+
+        // membuat nama file unik
+        $nama_file = rand() . $file->getClientOriginalName();
+
+        // upload ke folder file_siswa di dalam folder public
+        $file->move('app', $nama_file);
+        $rows = Excel::toArray(new Kuitansi, public_path("app/" . $nama_file));
+        Log::info($rows);
+        try {
+            if (count($rows) > 0) {
+                DB::beginTransaction();
+                $datas = [];
+                $i = 0;
+                foreach ($rows[0] as $row) {
+                    $i++;
+                    if ($i <= 7) {
+                        continue;
+                    }
+                    
+                    $isExit = false;
+                    foreach ($datas as &$data) {
+                        if ($data["channel_order_id"] == "${row[1]}") {
+                            $isExit = true;
+                            $item = [
+                                "name" => $row[7],
+                                "quantity" => $row[4],
+                                "price" => $row[9],
+                                "discount" => round($row[16]),
+                                "ppn" => $row[18],
+                            ];
+                            $data["items"][] = $item;
+                            $data["total"] += $row[6];
+                        }
+                    }
+                    if (!$isExit) {
+                        $item = [
+                            "name" => $row[7],
+                            "quantity" => $row[4],
+                            "price" => $row[9],
+                            "discount" => round($row[16]),
+                            "ppn" => $row[18],
+                        ];
+                        if (isset($row[2])) {
+                            $date = strtodate($row[2]);
+                        }
+                        $data = [
+                            "channel_order_id" => "${row[1]}",
+                            "channel_name" => $row[8],
+                            "order_date" => $date,
+                            "items" => [
+                                $item,
+                            ],
+                            "total" => $row[6],
+                        ];
+                        $datas[] = $data;
+                    }
+                }
+                $result = [];
+                for ($i = 0; $i < count($datas) - 5; $i++) {
+                    $result[] = $datas[$i];
+                    $dataInsert = $datas[$i];
+                    unset($dataInsert['items']);
+                    $transaction = Transaction::firstOrCreate($dataInsert);
+                    foreach ($datas[$i]['items'] as &$item) {
+                        $item['transaction_id'] = $transaction->id;
+                        TransactionDetail::firstOrCreate($item);
+                    }
+                }
+                // dd($result);
+                DB::commit();
+            }
+            
+            return view('pdf.invoice', ['datas' => $result]);
+            //  return response()->json([
+            //     'success' => true,
+            //     'date' => $result
+            // ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'please recheck the template'
+            ], 422);
+        }
     }
 
     /**
@@ -102,36 +199,11 @@ class InvoiceController extends Controller
         // return response()->json($generates, 200);
     }
 
-    // public function excel()
-    // {
-    //     $data = Excel::toArray(new Kuitansi(), $request->file);
-    //     echo json_encode($data);
-    //     // $data = Excel::toArray(new Kuitansi(), $request->file);
-    //     // $phoneNumbersData = [];
-    //     // foreach ($data[0] as $key => $value) {
-    //     //     $phoneNumbersData[] = $value[0];
-    //     // }
-    //     // return $phoneNumbersData;
-    // }
-
-    public function pembulatan($uang)
-    {
-        $ratusan = substr($uang, -3);
-        if ($ratusan < 500) {
-            $akhir = $uang - $ratusan;
-        } else {
-            $akhir = $uang + (1000 - $ratusan);
-        }
-
-        //  echo number_format($akhir, 2, ',', '.');;
-        return $akhir;
-    }
-
     public function importTest()
     {
         // $rows = [];
-        $rows = Excel::toArray(new Kuitansi, public_path("app/januaritokped.xls"));
-        
+        $rows = Excel::toArray(new Kuitansi, public_path("app/janwa2020.xls"));
+
         // $rows = Excel::toArray(new Kuitansi, $request->file('sampledata'));
         $datas = [];
         $i = 0;
@@ -156,8 +228,8 @@ class InvoiceController extends Controller
                         "name" => $row[7],
                         "quantity" => $row[4],
                         "price" => $row[9],
-                        "discount" => $row[15],
-                        "ppn" => $row[17],
+                        "discount" => round($row[16]),
+                        "ppn" => $row[18],
                     ];
                     $data["items"][] = $item;
                     $data["total"] += $row[6];
@@ -173,8 +245,8 @@ class InvoiceController extends Controller
                     "name" => $row[7],
                     "quantity" => $row[4],
                     "price" => $row[9],
-                    "discount" => $row[15],
-                    "ppn" => $row[17],
+                    "discount" => round($row[16]),
+                    "ppn" => $row[18],
                 ];
                 $data = [
                     "channel_order_id" => "${row[1]}",
@@ -197,96 +269,5 @@ class InvoiceController extends Controller
         // $pdf->loadView('pdf.invoice', ['datas' => $result])->setPaper('a4', 'portrait');
         // return $pdf->stream();
         return view('pdf.invoice', ['datas' => $result]);
-    }
-
-    public function dump()
-    {
-        $invoices = [
-            [
-                "order_id" => "2771200",
-                "channel_name" => "shopee",
-                "channel_order_id" => "2771200",
-                "channel_invoice" => "2771200",
-                "customer_name" => "diana gloria",
-                "customer_email" => null,
-                "customer_address" => "Jln babarsari ,(kompleks yadara blok 4) kos wisma oren no 13A, KAB. SLEMAN, DEPOK, DI YOGYAKARTA, ID, 55282",
-                "order_date" => 1579021200000,
-                "order_status" => "READY TO SHIP",
-                "order_status_code" => null,
-                "payment_method" => "SPayLater",
-                "shipping" => [
-                    "shipping_carrier" => "",
-                    "shipping_cost" => 22000,
-                    "shipping_awb" => "",
-                    "shipping_type" => null,
-                ],
-                "items" => [
-                    [
-                        "item_id" => "9302529866",
-                        "item_weight" => "0.03",
-                        "sku" => "ESQA0099",
-                        "name" => "The Goddess Cheek Palette Aphrodite",
-                        "quantity" => 1,
-                        "price" => 295000,
-                        "discount" => 134090,
-                        "product_type" => null,
-                        "ppn" => 16091,
-                    ],
-                ],
-                "total" => 160909,
-                "total_record_items" => 1,
-                "package_blibli" => null,
-            ],
-            [
-                "order_id" => "2861700",
-                "channel_name" => "shopee",
-                "channel_order_id" => "2861700",
-                "channel_invoice" => "2861700",
-                "customer_name" => "Dina Amalia @dinaamel29",
-                "customer_email" => null,
-                "customer_address" => "Jln babarsari ,(kompleks yadara blok 4) kos wisma oren no 13A, KAB. SLEMAN, DEPOK, DI YOGYAKARTA, ID, 55282",
-                "order_date" => 1578330000000,
-                "order_status" => "READY TO SHIP",
-                "order_status_code" => null,
-                "payment_method" => "SPayLater",
-                "shipping" => [
-                    "shipping_carrier" => "",
-                    "shipping_cost" => 22000,
-                    "shipping_awb" => "",
-                    "shipping_type" => null,
-                ],
-                "items" => [
-                    [
-                        "item_id" => "9302529866",
-                        "item_weight" => "0.03",
-                        "sku" => "ESQA0099",
-                        "name" => "ESQA Goddess Eyeshadow Palette - Pink",
-                        "quantity" => 1,
-                        "price" => 245000,
-                        "discount" => 22273,
-                        "product_type" => null,
-                        "ppn" => 2273,
-                    ],
-                    [
-                        "item_id" => "9302529866",
-                        "item_weight" => "0.03",
-                        "sku" => "ESQA0099",
-                        "name" => "The Goddess Cheek Palette Athena",
-                        "quantity" => 1,
-                        "price" => 295000,
-                        "discount" => 26818,
-                        "product_type" => null,
-                        "ppn" => 26812,
-                    ],
-                ],
-                "total" => 490909,
-                "total_record_items" => 2,
-                "package_blibli" => null,
-            ],
-        ];
-        $pdf = app()->make('dompdf.wrapper');
-        $pdf->loadView('pdf.invoice', ['datas' => $invoices])->setPaper('a4', 'portrait');
-        return $pdf->stream();
-        // return response()->json($generates, 200);
     }
 }

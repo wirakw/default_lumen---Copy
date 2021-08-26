@@ -6,6 +6,55 @@ function rupiah($angka)
     return $hasil_rupiah;
 }
 
+function strtodate($str)
+{
+    $new = explode(" ",$str);
+    if (!isset($new[2])) {
+        dd($new);
+    }
+    $bln  = "01";
+    switch ($new[1]) {
+        case "Jan":
+            $bln = "01";
+            break;
+        case "Feb":
+            $bln = "02";
+            break;
+        case "Mar":
+            $bln = "03";
+            break;
+        case "Apr":
+            $bln = "04";
+            break;
+        case "Mei":
+            $bln = "05";
+            break;
+        case "Jun":
+            $bln = "06";
+            break;
+        case "Jul":
+            $bln = "07";
+            break;
+        case "Agu":
+            $bln = "08";
+            break;
+        case "Sep":
+            $bln = "09";
+            break;
+        case "Okt":
+            $bln = "10";
+            break;
+        case "Nov":
+            $bln = "11";
+            break;
+        case "Des":
+            $bln = "12";
+            break;
+    }
+    $newStr = $new[2] . '-' .$bln . '-' .$new[0];
+    return $newStr;
+}
+
 function pembulatan($uang)
 {
     $ratusan = substr($uang, -3);
