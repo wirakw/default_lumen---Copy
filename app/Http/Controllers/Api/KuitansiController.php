@@ -202,7 +202,7 @@ class KuitansiController extends Controller
     public function importTest()
     {
         // $rows = [];
-        $rows = Excel::toArray(new Kuitansi, public_path("app/zzz.xls"));
+        $rows = Excel::toArray(new Kuitansi, public_path("app/shoppefeb2020.xls"));
 
         // $rows = Excel::toArray(new Kuitansi, $request->file('sampledata'));
         $datas = [];

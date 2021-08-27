@@ -28,6 +28,14 @@
             background-color: lightgray
         }
 
+        body {
+            height: 842px;
+            width: 595px;
+            /* to centre page on screen*/
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .shoppe {
             color: #FF6600
         }
@@ -95,7 +103,7 @@
                             $month[1] = 1;
                         }
                     @endphp
-                    <td>KEVA/{{date("Y")}}/{{strtoupper($data['channel_name'])}}/{{getRomawi($month[1])}}/{{invoice_num($loop->iteration)}}</td>
+                    <td>KEVA/{{$month[0]}}/{{strtoupper($data['channel_name'])}}/{{getRomawi($month[1])}}/{{invoice_num($loop->iteration)}}</td>
                 </tr>
                 <tr>
                     <td width="15px">Tanggal</td>
