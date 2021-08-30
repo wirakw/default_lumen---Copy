@@ -76,6 +76,12 @@ class KuitansiController extends Controller
                             if (isset($row[2])) {
                                 $date = strtodate($row[2]);
                             }
+                            if ($row[8] == "WHATSAPP ORDER") {
+                                $row[8] = "WO";
+                            }
+                            if ($row[8] == "ESQA WEBSITE") {
+                                $row[8] = "WEBSITE";
+                            }
                             $data = [
                                 "channel_order_id" => "${row[1]}",
                                 "channel_name" => $row[8],
@@ -197,7 +203,7 @@ class KuitansiController extends Controller
 
     public function importTest()
     {
-        $rows = Excel::toArray(new Kuitansi, public_path("app/wafeb2020.xls"));
+        $rows = Excel::toArray(new Kuitansi, public_path("app/janwa2020.xls"));
         $datas = [];
         foreach ($rows[0] as $row) {
             if ($row[4] == "Quantity") {
@@ -229,6 +235,12 @@ class KuitansiController extends Controller
                     ];
                     if (isset($row[2])) {
                         $date = strtodate($row[2]);
+                    }
+                    if ($row[8] == "WHATSAPP ORDER") {
+                        $row[8] = "WO";
+                    }
+                    if ($row[8] == "ESQA WEBSITE") {
+                        $row[8] = "WEBSITE";
                     }
                     $data = [
                         "channel_order_id" => "${row[1]}",
