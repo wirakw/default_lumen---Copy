@@ -45,30 +45,27 @@ class KuitansiController extends Controller
             if (count($rows) > 0) {
                 // DB::beginTransaction();
                 $datas = [];
-                $i = 0;
                 foreach ($rows[0] as $row) {
-                    $i++;
-                    if ($i <= 7) {
+                    if ($row[4] == "Quantity") {
                         continue;
                     }
-
-                    $isExit = false;
-                    foreach ($datas as &$data) {
-                        if ($data["channel_order_id"] == "${row[1]}") {
-                            $isExit = true;
-                            $item = [
-                                "name" => $row[7],
-                                "quantity" => $row[4],
-                                "price" => $row[9],
-                                "discount" => round($row[16]),
-                                "ppn" => $row[18],
-                            ];
-                            $data["items"][] = $item;
-                            $data["total"] += $row[6];
+                    if (isset($row[7]) && isset($row[4]) && isset($row[9]) && isset($row[16]) && isset($row[18]) && isset($row[8]) && isset($row[6])) {
+                        $isExit = false;
+                        for ($iter = 0; $iter < count($datas); $iter++) {
+                            if ($datas[$iter]["channel_order_id"] == "${row[1]}") {
+                                $isExit = true;
+                                $item = [
+                                    "name" => $row[7],
+                                    "quantity" => $row[4],
+                                    "price" => $row[9],
+                                    "discount" => round($row[16]),
+                                    "ppn" => $row[18],
+                                ];
+                                $datas[$iter]["items"][] = $item;
+                                $datas[$iter]["total"] += $row[6];
+                            }
                         }
-                    }
-                    if (!$isExit) {
-                        if (isset($row[7]) && isset($row[4]) && isset($row[9]) && isset($row[16]) && isset($row[18]) && isset($row[8]) && isset($row[6])) {
+                        if (!$isExit) {
                             $item = [
                                 "name" => $row[7],
                                 "quantity" => $row[4],
@@ -92,22 +89,22 @@ class KuitansiController extends Controller
                         }
                     }
                 }
-                $result = [];
-                for ($i = 0; $i < count($datas) - 5; $i++) {
-                    $result[] = $datas[$i];
-                    // $dataInsert = $datas[$i];
-                    // unset($dataInsert['items']);
-                    // $transaction = Transaction::firstOrCreate($dataInsert);
-                    // foreach ($datas[$i]['items'] as &$item) {
-                    // $item['transaction_id'] = $transaction->id;
-                    // TransactionDetail::firstOrCreate($item);
-                    // }
-                }
+                // $result = [];
+                // for ($i = 0; $i < count($datas); $i++) {
+                //     $result[] = $datas[$i];
+                // $dataInsert = $datas[$i];
+                // unset($dataInsert['items']);
+                // $transaction = Transaction::firstOrCreate($dataInsert);
+                // foreach ($datas[$i]['items'] as &$item) {
+                // $item['transaction_id'] = $transaction->id;
+                // TransactionDetail::firstOrCreate($item);
+                // }
+                // }
                 // dd($result);
                 // DB::commit();
             }
 
-            return view('pdf.invoice', ['datas' => $result]);
+            return view('pdf.invoice', ['datas' => $datas]);
             //  return response()->json([
             //     'success' => true,
             //     'date' => $result
@@ -200,22 +197,29 @@ class KuitansiController extends Controller
 
     public function importTest()
     {
-        // $rows = [];
-        $rows = Excel::toArray(new Kuitansi, public_path("app/shoppefeb2020.xls"));
-
-        // $rows = Excel::toArray(new Kuitansi, $request->file('sampledata'));
+        $rows = Excel::toArray(new Kuitansi, public_path("app/wafeb2020.xls"));
         $datas = [];
-        $i = 0;
         foreach ($rows[0] as $row) {
-            $i++;
-            if ($i <= 7) {
+            if ($row[4] == "Quantity") {
                 continue;
             }
-            $isExit = false;
-            foreach ($datas as &$data) {
-                if ($data["channel_order_id"] == "${row[1]}") {
-                    $isExit = true;
-
+            if (isset($row[7]) && isset($row[4]) && isset($row[9]) && isset($row[16]) && isset($row[18]) && isset($row[8]) && isset($row[6])) {
+                $isExit = false;
+                for ($iter = 0; $iter < count($datas); $iter++) {
+                    if ($datas[$iter]["channel_order_id"] == "${row[1]}") {
+                        $isExit = true;
+                        $item = [
+                            "name" => $row[7],
+                            "quantity" => $row[4],
+                            "price" => $row[9],
+                            "discount" => round($row[16]),
+                            "ppn" => $row[18],
+                        ];
+                        $datas[$iter]["items"][] = $item;
+                        $datas[$iter]["total"] += $row[6];
+                    }
+                }
+                if ($isExit == false) {
                     $item = [
                         "name" => $row[7],
                         "quantity" => $row[4],
@@ -223,41 +227,30 @@ class KuitansiController extends Controller
                         "discount" => round($row[16]),
                         "ppn" => $row[18],
                     ];
-                    $data["items"][] = $item;
-                    $data["total"] += $row[6];
+                    if (isset($row[2])) {
+                        $date = strtodate($row[2]);
+                    }
+                    $data = [
+                        "channel_order_id" => "${row[1]}",
+                        "channel_name" => $row[8],
+                        "order_date" => $date,
+                        "items" => [
+                            $item,
+                        ],
+                        "total" => $row[6],
+                    ];
+                    $datas[] = $data;
                 }
             }
-            if (!$isExit) {
-                if (isset($row[2])) {
-                    $date = strtodate($row[2]);
-                }
-                $item = [
-                    "name" => $row[7],
-                    "quantity" => $row[4],
-                    "price" => $row[9],
-                    "discount" => round($row[16]),
-                    "ppn" => $row[18],
-                ];
-                $data = [
-                    "channel_order_id" => "${row[1]}",
-                    "channel_name" => $row[8],
-                    "order_date" => $date,
-                    "items" => [
-                        $item,
-                    ],
-                    "total" => $row[6],
-                ];
-                $datas[] = $data;
-            }
         }
-        $result = [];
-        for ($i = 0; $i < count($datas) - 5; $i++) {
-            $result[] = $datas[$i];
-        }
-        // return response()->json($result, 200);
+
+        // $result = [];
+        // for ($i = 0; $i < count($datas); $i++) {
+        //     $result[] = $datas[$i];
+        // }
         // $pdf = app()->make('dompdf.wrapper');
         // $pdf->loadView('pdf.invoice', ['datas' => $result])->setPaper('a4', 'portrait');
         // return $pdf->stream();
-        return view('pdf.invoice', ['datas' => $result]);
+        return view('pdf.invoice', ['datas' => $datas]);
     }
 }
