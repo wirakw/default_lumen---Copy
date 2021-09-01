@@ -27,4 +27,5 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     // $router->get('dump', 'Api\KuitansiController@dump');
     $router->get('abc', 'Api\KuitansiController@importTest');
     $router->post('import', 'Api\KuitansiController@import');
+    $router->get('kuitansi', 'Api\KuitansiController@index');
 });

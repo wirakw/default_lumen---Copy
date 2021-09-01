@@ -20,7 +20,7 @@ class Transaction extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'channel_order_id', 'channel_name', 'order_date', 'total', 'updated_at', 'created_at',
+        'id', 'channel_order_id', 'bulan', 'tahun', 'channel_name', 'order_date', 'total', 'updated_at', 'created_at',
     ];
 
     /**
@@ -32,7 +32,7 @@ class Transaction extends Model
         'updated_at',
     ];
 
-    public function details()
+    public function items()
     {
         return $this->hasMany("App\Models\TransactionDetail");
     }

@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Imports\Kuitansi;
+use App\Models\Transaction;
+use App\Models\TransactionDetail;
 use App\Services\AturTokoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use DB;
 
 class KuitansiController extends Controller
 {
@@ -31,20 +34,16 @@ class KuitansiController extends Controller
             'file' => 'required|mimes:xls,xlsx',
         ]);
 
-        // menangkap file excel
         $file = $request->file('file');
-
-        // membuat nama file unik
         $nama_file = rand() . $file->getClientOriginalName();
-
-        // upload ke folder file_siswa di dalam folder public
         $file->move('app', $nama_file);
         $rows = Excel::toArray(new Kuitansi, public_path("app/" . $nama_file));
         Log::info($rows);
         try {
             if (count($rows) > 0) {
-                // DB::beginTransaction();
+                DB::beginTransaction();
                 $datas = [];
+                $channel_name = "";
                 foreach ($rows[0] as $row) {
                     if ($row[4] == "Quantity") {
                         continue;
@@ -75,6 +74,7 @@ class KuitansiController extends Controller
                             ];
                             if (isset($row[2])) {
                                 $date = strtodate($row[2]);
+                                $splitdate = explode('-', $date);
                             }
                             if ($row[8] == "WHATSAPP ORDER") {
                                 $row[8] = "WO";
@@ -86,35 +86,38 @@ class KuitansiController extends Controller
                                 "channel_order_id" => "${row[1]}",
                                 "channel_name" => $row[8],
                                 "order_date" => $date,
+                                "bulan" => $splitdate[1],
+                                "tahun" => $splitdate[0],
                                 "items" => [
                                     $item,
                                 ],
                                 "total" => $row[6],
                             ];
                             $datas[] = $data;
+                            $channel_name = $row[8];
                         }
                     }
                 }
                 // $result = [];
-                // for ($i = 0; $i < count($datas); $i++) {
-                //     $result[] = $datas[$i];
-                // $dataInsert = $datas[$i];
-                // unset($dataInsert['items']);
-                // $transaction = Transaction::firstOrCreate($dataInsert);
-                // foreach ($datas[$i]['items'] as &$item) {
-                // $item['transaction_id'] = $transaction->id;
-                // TransactionDetail::firstOrCreate($item);
-                // }
-                // }
+                for ($i = 0; $i < count($datas); $i++) {
+                    // $result[] = $datas[$i];
+                    $dataInsert = $datas[$i];
+                    unset($dataInsert['items']);
+                    $transaction = Transaction::firstOrCreate($dataInsert);
+                    foreach ($datas[$i]['items'] as &$item) {
+                        $item['transaction_id'] = $transaction->id;
+                        TransactionDetail::firstOrCreate($item);
+                    }
+                }
                 // dd($result);
-                // DB::commit();
+                DB::commit();
             }
 
-            return view('pdf.invoice', ['datas' => $datas]);
-            //  return response()->json([
-            //     'success' => true,
-            //     'date' => $result
-            // ], 200);
+            // return view('pdf.invoice', ['datas' => $datas]);
+             return response()->json([
+                'success' => true,
+                'url' => url('api/v1/kuitansi?channel_name' . $channel_name . '&bulan=' . $splitdate[1] .'&tahun=' . $splitdate[0]),
+            ], 200);
         } catch (Exception $e) {
             // DB::rollBack();
             return response()->json([
@@ -129,22 +132,21 @@ class KuitansiController extends Controller
      *
      * @return Response
      */
-    public function index()
-    {
-        $pdf = app()->make('dompdf.wrapper');
-        $pdf->loadView('pdf.invoice')->setPaper('a4', 'portrait');
-        return $pdf->stream();
-    }
-
-    public function login(Request $request)
+    public function index(Request $request)
     {
         $this->validate($request, [
-            'username' => 'required',
-            'password' => 'required',
+            'bulan' => 'required',
+            'tahun' => 'required',
+            'channel_name' => 'required',
         ]);
         $input = $request->all();
-        return response()->json($this->atService->login($input), 200);
+        
+        $datas = Transaction::where('channel_name', $input['channel_name'])
+        ->where('bulan', $input['bulan'])->where('tahun', $input['tahun'])->with('items')->get();
+        
+        return view('pdf.invoice', ['datas' => $datas]);
     }
+
 
     public function getToken()
     {
@@ -203,7 +205,7 @@ class KuitansiController extends Controller
 
     public function importTest()
     {
-        $rows = Excel::toArray(new Kuitansi, public_path("app/janwa2020.xls"));
+        $rows = Excel::toArray(new Kuitansi, public_path("app/maretshoppe2020.xls"));
         $datas = [];
         foreach ($rows[0] as $row) {
             if ($row[4] == "Quantity") {
